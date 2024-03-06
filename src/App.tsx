@@ -1,106 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import styles from './App.module.css';
+import { useCalculator, AppProvider } from './AppContext';
 
 const App = () => {
-	const [stack, setStack] = useState<number[]>([]);
-	const [activeNumber, setActiveNumber] = useState<string>('0');
+	const {
+		stack,
+		activeNumber,
+		handleNumberClick,
+		handleOperatorClick,
+		handleClear,
+		handleEnter,
+	} = useCalculator();
 
-	const handleNumberClick = (number: number | string) => {
-		setActiveNumber((prevActiveNumber) => {
-			if (prevActiveNumber === '0') {
-				return number.toString();
-			} else {
-				return prevActiveNumber + number.toString();
-			}
-		});
-	};
-
-	const handleOperatorClick = (operator: string) => {
-		if (!isNaN(parseFloat(activeNumber))) {
-			const num1 = stack[0];
-			const num2 = parseFloat(activeNumber);
-			let result = 0;
-			const stackCopy = [...stack];
-
-			switch (operator) {
-				case '+':
-					result = num1 + num2;
-					removeFromStack();
-					break;
-				case '-':
-					if (num2 > 0) {
-						result = 0 - num2;
-					} else {
-						result = num1 - num2;
-						removeFromStack();
-					}
-					break;
-				case '*':
-				case 'x':
-				case 'X':
-					result = num1 * num2;
-					removeFromStack();
-					break;
-				case '/':
-				case '%':
-					result = num1 / num2;
-					removeFromStack();
-					break;
-				case '^':
-					result = num1 ^ num2;
-					removeFromStack();
-					break;
-				case '>':
-					if (num2 > 0) {
-						stackCopy.push(num2);
-						pushToStack(num2);
-					}
-					result = Math.max(...stackCopy);
-					break;
-				case '<':
-					if (num2 > 0) {
-						stackCopy.push(num2);
-						pushToStack(num2);
-					}
-					result = Math.min(...stackCopy);
-					break;
-				case 'log':
-					if (num2 > 0) {
-						result = Math.log10(num2);
-					}
-					break;
-				case 'pop':
-					if (stack.length > 0) {
-						result = stack.pop()!;
-					}
-					break;
-				default:
-					break;
-			}
-			setActiveNumber(result.toString());
-		}
-	};
-
-	const pushToStack = (value: number) => {
-		setStack((prevStack) => [value, ...prevStack]);
-	};
-
-	const removeFromStack = () => {
-		setStack((prevStack) => prevStack.slice(1));
-	};
-
-	const handleClear = () => {
-		setStack([]);
-		setActiveNumber('0');
-	};
-
-	const handleEnter = () => {
-		if (!isNaN(parseFloat(activeNumber))) {
-			pushToStack(parseFloat(activeNumber));
-			setActiveNumber('0');
-		}
-	};
-
+	// Handle User keyboard input
 	useEffect(() => {
 		const handleKeyPress = (event: KeyboardEvent) => {
 			const key = event.key;
@@ -138,7 +50,7 @@ const App = () => {
 			<div className={styles.calculator}>
 				<div className={styles.display}>
 					<div className={styles.stack}>
-						{stack.map((item, index) => (
+						{stack.map((item: number, index: number) => (
 							<div key={index}>{item}</div>
 						))}
 					</div>
@@ -181,7 +93,7 @@ const App = () => {
 					</div>
 				</div>
 			</div>
-			<div></div>
+			{/* Take focus off buttons on user keyboard input */}
 			<input
 				type='text'
 				id='hiddenInput'
@@ -192,4 +104,12 @@ const App = () => {
 	);
 };
 
-export default App;
+const AppWrapper = () => {
+	return (
+		<AppProvider>
+			<App />
+		</AppProvider>
+	);
+};
+
+export default AppWrapper;
